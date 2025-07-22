@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workspace Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    .resize-handle {
+      width: 8px;
+      background: #e5e7eb;
+      cursor: col-resize;
+      transition: background 0.2s;
+    }
+    .resize-handle:hover {
+      background: #d1d5db;
+    }
+    .tool-btn {
+      transition: all 0.2s;
+    }
+    .tool-btn.active {
+      background: #DF1783;
+      color: white;
+    }
+    .document-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+    .logo-shine {
+      background: linear-gradient(145deg, #fff, #f1f1f1, #ffffff);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shine 3s ease infinite;
+      text-shadow: 0 0 8px rgba(223,23,131,0.3);
+    }
+    @keyframes shine {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .ck-editor__editable {
+      min-height: calc(100vh - 150px);
+      border: none !important;
+      padding: 20px !important;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: white;
+      min-width: 200px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 8px;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    .dropdown-item {
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    .dropdown-item:hover {
+      background-color: #f8f9fa;
+    }
+    .draggable-toolbar {
+      position: absolute;
+      z-index: 100;
+      display: flex;
+      gap: 8px;
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      cursor: move;
+      top: 20px;
+      left: 20px;
+    }
+    .editor-container {
+      position: relative;
+      height: 100%;
+    }
+    .right-panel-iframe {
+      width: 100%;
+      height: calc(100% - 40px);
+      border: none;
+      margin-top: 10px;
+    }
+    .html-editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .html-editor-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .html-editor-actions {
+      display: flex;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body class="h-screen bg-gray-100 overflow-hidden">
+  <!-- MAIN-CONTAINER -->
+  <div class="flex flex-col h-full">
+    <!-- HEADER-CONTAINER -->
+    <header class="bg-[#DF1783] shadow-sm py-3 px-4 flex items-center justify-between">
+      <!-- LOGO-CONTAINER -->
+      <div class="flex items-center space-x-2">
+        <div class="logo-shine text-2xl">
+          <span class="material-icons">workspaces</span>
+        </div>
+        <h1 class="text-xl font-semibold text-white">Workspace Pro</h1>
+      </div>
+      
+      <!-- TOOLBAR-CONTAINER -->
+      <div class="flex items-center space-x-4">
+        <!-- EDITOR-TOOLS-CONTAINER -->
+        <div class="flex space-x-2 items-center">
+          <!-- Google Docs Button -->
+          <button id="docs-btn" class="tool-btn active px-0 py-1 rounded border border-[#df1783] text-white hover:bg-[#C11575]" title="Google Docs">
+            <img src="https://www.gstatic.com/images/branding/product/1x/docs_2020q4_24dp.png" 
+                 alt="Docs" 
+                 class="w-6 h-6 object-contain" />
+          </button>
+          
+          <!-- Google Sheets Button -->
+          <button id="sheets-btn" class="tool-btn px-0 py-1 rounded border border-[#df1783] text-white hover:bg-[#C11575]" title="Google Sheets">
+            <img src="https://www.gstatic.com/images/branding/product/1x/sheets_2020q4_24dp.png" 
+                 alt="Sheets" 
+                 class="w-6 h-6 object-contain" /> 
+          </button>
+          
+          <!-- Google Slides Button -->
+          <button id="slides-btn" class="tool-btn px-0 py-1 rounded border border-[#df1783] text-white hover:bg-[#C11575]" title="Google Slides">
+            <img src="https://www.gstatic.com/images/branding/product/1x/slides_2020q4_24dp.png" 
+                 alt="Slides" 
+                 class="w-6 h-6 object-contain" />
+          </button>
+          
+          <!-- HTML Editor Button -->
+          <button id="html-btn" class="tool-btn px-0 py-1 rounded border border-[#df1783] text-white hover:bg-[#C11575]" title="HTML Editor">
+            <img src="https://cdn-icons-png.flaticon.com/512/732/732212.png" 
+                 alt="HTML" 
+                 class="w-6 h-6 object-contain" />
+          </button>
+        </div>
+        
+        <button id="new-doc" class="px-4 py-2 bg-white text-[#DF1783] rounded-lg hover:bg-gray-100 font-medium transition-all">
+          New Document
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN-CONTENT-CONTAINER -->
+    <div class="flex flex-1 overflow-hidden relative">
+      <!-- LEFT-PANEL-CONTAINER -->
+      <div class="flex-1 flex flex-col bg-white border-r border-gray-200">
+        <!-- BROWSER-TOOLBAR-CONTAINER -->
+        <div class="p-2 bg-gray-50 border-b border-gray-200 flex items-center">
+          <!-- RESOURCES-DROPDOWN-CONTAINER -->
+          <div class="dropdown relative mr-2">
+            <button class="px-3 py-1 bg-[#DF1783] text-white rounded-lg flex items-center">
+              <span class="material-icons mr-1">bolt</span>
+              Resources
+              <span class="material-icons ml-1">arrow_drop_down</span>
+            </button>
+            <div class="dropdown-content">
+              <div class="dropdown-item" data-url="https://chat.openai.com" data-type="chatgpt">ChatGPT</div>
+              <div class="dropdown-item" data-url="https://gemini.google.com" data-type="gemini">Gemini</div>
+              <div class="dropdown-item" data-url="https://www.deepseek.com" data-type="deepseek">DeepSeek</div>
+              <div class="dropdown-item" data-url="https://kimi.moonshot.cn" data-type="kimi">Kimi</div>
+              <div class="dropdown-item" data-url="https://www.wan2.cn" data-type="wan2">Wan2</div>
+            </div>
+          </div>
+          <button id="back-btn" class="p-2 mx-1 rounded hover:bg-gray-200">
+            <span class="material-icons">arrow_back</span>
+          </button>
+          <button id="forward-btn" class="p-2 mx-1 rounded hover:bg-gray-200">
+            <span class="material-icons">arrow_forward</span>
+          </button>
+          <button id="refresh-btn" class="p-2 mx-1 rounded hover:bg-gray-200">
+            <span class="material-icons">refresh</span>
+          </button>
+          <input id="url-bar" type="text" value="https://chat.openai.com" class="flex-1 mx-2 px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#DF1783]">
+          <button id="go-btn" class="px-3 py-1 bg-[#DF1783] text-white rounded hover:bg-[#C11575]">
+            Go
+          </button>
+        </div>
+        <!-- BROWSER-FRAME-CONTAINER -->
+        <iframe id="browser-frame" class="flex-1 border-none" src="https://chat.openai.com"></iframe>
+      </div>
+
+      <!-- RESIZE-HANDLE -->
+      <div class="resize-handle"></div>
+
+      <!-- RIGHT-PANEL-CONTAINER -->
+      <div class="flex-1 flex flex-col bg-white relative">
+        <!-- RIGHT-PANEL-CONTENT-CONTAINER -->
+        <div id="right-panel-content" class="flex-1 overflow-auto">
+          <!-- GOOGLE-DOCS-CONTAINER -->
+          <iframe id="docs-frame" class="right-panel-iframe" src="https://docs.google.com/document/create" style="display: block;"></iframe>
+          
+          <!-- GOOGLE-SHEETS-CONTAINER -->
+          <iframe id="sheets-frame" class="right-panel-iframe" src="https://docs.google.com/spreadsheets/create" style="display: none;"></iframe>
+          
+          <!-- GOOGLE-SLIDES-CONTAINER -->
+          <iframe id="slides-frame" class="right-panel-iframe" src="https://docs.google.com/presentation/create" style="display: none;"></iframe>
+          
+          <!-- HTML-EDITOR-CONTAINER -->
+          <div id="html-editor-container" class="h-full" style="display: none;">
+            <div class="html-editor-header">
+              <div class="html-editor-tabs">
+                <button id="html-preview-btn" class="px-3 py-1 bg-[#DF1783] text-white rounded hover:bg-[#C11575]">
+                  Preview
+                </button>
+                <button id="html-source-btn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                  Editor
+                </button>
+              </div>
+              <div class="html-editor-actions">
+                <button id="new-html-doc-btn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                  Create New Document
+                </button>
+                <button id="download-html-btn" class="px-3 py-1 bg-[#DF1783] text-white rounded hover:bg-[#C11575]">
+                  Download HTML
+                </button>
+              </div>
+            </div>
+            <div id="html-source-editor" class="h-full border border-gray-300 p-4 font-mono text-sm" contenteditable="true">
+              <h1>Welcome to Workspace Pro</h1>
+              <p>Start editing your HTML content here.</p>
+            </div>
+            <iframe id="html-preview" class="right-panel-iframe hidden"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // BROWSER-CONTROLS-CONTAINER
+      const browserFrame = document.getElementById('browser-frame');
+      const urlBar = document.getElementById('url-bar');
+      const goBtn = document.getElementById('go-btn');
+      const backBtn = document.getElementById('back-btn');
+      const forwardBtn = document.getElementById('forward-btn');
+      const refreshBtn = document.getElementById('refresh-btn');
+
+      // RIGHT-PANEL-CONTROLS-CONTAINER
+      const docsBtn = document.getElementById('docs-btn');
+      const sheetsBtn = document.getElementById('sheets-btn');
+      const slidesBtn = document.getElementById('slides-btn');
+      const htmlBtn = document.getElementById('html-btn');
+      const newDocBtn = document.getElementById('new-doc');
+
+      // RIGHT-PANEL-FRAMES-CONTAINER
+      const docsFrame = document.getElementById('docs-frame');
+      const sheetsFrame = document.getElementById('sheets-frame');
+      const slidesFrame = document.getElementById('slides-frame');
+      const htmlEditorContainer = document.getElementById('html-editor-container');
+      const htmlSourceEditor = document.getElementById('html-source-editor');
+      const htmlPreview = document.getElementById('html-preview');
+
+      // Current tool state
+      let currentTool = 'docs';
+      let htmlContent = '<h1>Welcome to Workspace Pro</h1><p>Start editing your HTML content here.</p>';
+
+      // Resize handle functionality
+      const resizeHandle = document.querySelector('.resize-handle');
+      const leftPanel = document.querySelector('.flex > div:first-child');
+      const rightPanel = document.querySelector('.flex > div:last-child');
+
+      let isResizing = false;
+
+      resizeHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        document.body.style.cursor = 'col-resize';
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        
+        const containerWidth = document.querySelector('.flex').offsetWidth;
+        const newLeftWidth = (e.clientX / containerWidth) * 100;
+        
+        leftPanel.style.flex = `0 0 ${newLeftWidth}%`;
+        rightPanel.style.flex = `0 0 ${100 - newLeftWidth}%`;
+      });
+
+      document.addEventListener('mouseup', () => {
+        isResizing = false;
+        document.body.style.cursor = '';
+      });
+
+      // Browser functionality
+      function navigate() {
+        let url = urlBar.value;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url;
+        }
+        browserFrame.src = url;
+      }
+
+      goBtn.addEventListener('click', navigate);
+      urlBar.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') navigate();
+      });
+
+      backBtn.addEventListener('click', () => {
+        browserFrame.contentWindow.history.back();
+      });
+
+      forwardBtn.addEventListener('click', () => {
+        browserFrame.contentWindow.history.forward();
+      });
+
+      refreshBtn.addEventListener('click', () => {
+        browserFrame.contentWindow.location.reload();
+      });
+
+      // Update URL bar when iframe navigates
+      browserFrame.addEventListener('load', () => {
+        try {
+          urlBar.value = browserFrame.contentWindow.location.href;
+        } catch (e) {
+          // Cross-origin security restrictions may prevent this
+        }
+      });
+
+      // Resource dropdown functionality
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const url = item.getAttribute('data-url');
+          urlBar.value = url;
+          browserFrame.src = url;
+        });
+      });
+
+      // Tool switching functionality
+      function setActiveTool(tool) {
+        // Hide all right panel content
+        docsFrame.style.display = 'none';
+        sheetsFrame.style.display = 'none';
+        slidesFrame.style.display = 'none';
+        htmlEditorContainer.style.display = 'none';
+        
+        // Update button states
+        docsBtn.classList.remove('active');
+        sheetsBtn.classList.remove('active');
+        slidesBtn.classList.remove('active');
+        htmlBtn.classList.remove('active');
+        
+        // Show selected tool and activate its button
+        switch(tool) {
+          case 'docs':
+            docsFrame.style.display = 'block';
+            docsBtn.classList.add('active');
+            break;
+          case 'sheets':
+            sheetsFrame.style.display = 'block';
+            sheetsBtn.classList.add('active');
+            break;
+          case 'slides':
+            slidesFrame.style.display = 'block';
+            slidesBtn.classList.add('active');
+            break;
+          case 'html':
+            htmlEditorContainer.style.display = 'block';
+            htmlBtn.classList.add('active');
+            break;
+        }
+        
+        currentTool = tool;
+      }
+
+      // Tool button event listeners
+      docsBtn.addEventListener('click', () => {
+        setActiveTool('docs');
+        docsFrame.src = 'https://docs.google.com/document/create';
+      });
+
+      sheetsBtn.addEventListener('click', () => {
+        setActiveTool('sheets');
+        sheetsFrame.src = 'https://docs.google.com/spreadsheets/create';
+      });
+
+      slidesBtn.addEventListener('click', () => {
+        setActiveTool('slides');
+        slidesFrame.src = 'https://docs.google.com/presentation/create';
+      });
+
+      htmlBtn.addEventListener('click', () => {
+        setActiveTool('html');
+      });
+
+      // HTML Editor functionality
+      document.getElementById('html-preview-btn')?.addEventListener('click', () => {
+        htmlContent = htmlSourceEditor.innerHTML;
+        htmlSourceEditor.classList.add('hidden');
+        htmlPreview.classList.remove('hidden');
+        htmlPreview.srcdoc = htmlContent;
+      });
+      
+      document.getElementById('html-source-btn')?.addEventListener('click', () => {
+        htmlSourceEditor.classList.remove('hidden');
+        htmlPreview.classList.add('hidden');
+      });
+
+      // New HTML document button
+      document.getElementById('new-html-doc-btn')?.addEventListener('click', () => {
+        if (confirm('Create a new HTML document? Your current work will be cleared.')) {
+          htmlSourceEditor.innerHTML = '<h1>New HTML Document</h1><p>Start editing your HTML content here.</p>';
+          if (!htmlPreview.classList.contains('hidden')) {
+            htmlPreview.srcdoc = htmlSourceEditor.innerHTML;
+          }
+        }
+      });
+
+      // Download HTML button
+      document.getElementById('download-html-btn')?.addEventListener('click', () => {
+        const content = htmlSourceEditor.innerHTML;
+        const blob = new Blob([content], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `document-${new Date().toISOString().slice(0,10)}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      // New document button
+      newDocBtn.addEventListener('click', () => {
+        if (currentTool === 'html') {
+          if (confirm('Create a new HTML document? Your current work will be cleared.')) {
+            htmlSourceEditor.innerHTML = '<h1>New HTML Document</h1><p>Start editing your HTML content here.</p>';
+            if (!htmlPreview.classList.contains('hidden')) {
+              htmlPreview.srcdoc = htmlSourceEditor.innerHTML;
+            }
+          }
+        } else {
+          // For Google tools, reload the create URL
+          switch(currentTool) {
+            case 'docs':
+              docsFrame.src = 'https://docs.google.com/document/create';
+              break;
+            case 'sheets':
+              sheetsFrame.src = 'https://docs.google.com/spreadsheets/create';
+              break;
+            case 'slides':
+              slidesFrame.src = 'https://docs.google.com/presentation/create';
+              break;
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
